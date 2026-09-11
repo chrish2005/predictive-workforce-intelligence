@@ -165,7 +165,7 @@ Run all automated unit tests:
 - **Zero-Leakage Assurance**: Confirms feature transformers fit exclusively on training data.
 - **Predictive Power**: Confirms ROC-AUC $\ge 0.82$, PR-AUC $\ge 0.58$, and Precision@Top10% $\ge 0.60$.
 - **Probability Calibration**: Validates calibrated Brier score $\le 0.12$.
-- **SHAP Additivity Property**: Confirms $\sum \text{SHAP values} + \text{base\_value} = \text{model output}$.
+- **SHAP Additivity Property**: Confirms $\sum_{j=1}^{M} \phi_j(x) + \phi_0 = f(x)$ (feature attributions + baseline equal model margin output).
 - **Retention Simulation**: Verifies risk attenuation and non-negative financial ROI.
 
 ---
@@ -173,9 +173,15 @@ Run all automated unit tests:
 ## 💼 Turnover Replacement Financial Model (SHRM Standard)
 
 The system models employee turnover costs using the Society for Human Resource Management (SHRM) benchmark:
+
 $$\text{Turnover Replacement Cost} = 1.5 \times \text{Annual Base Salary}$$
-When HR implements a prescriptive retention package (e.g. 10% salary hike, overtime elimination, equity grant), the net ROI is calculated as:
+
+When HR implements a prescriptive retention package (such as salary revision, overtime elimination, promotion, or equity grants), the net financial ROI is computed as:
+
 $$\Delta \text{Risk} = \max(0, P_{\text{baseline}} - P_{\text{simulated}})$$
+
 $$\text{Replacement Value Preserved} = \Delta \text{Risk} \times \text{Turnover Replacement Cost}$$
+
 $$\text{Net Financial Benefit} = \text{Replacement Value Preserved} - \text{Total Retention Package Cost}$$
+
 $$\text{ROI (\%)} = \left( \frac{\text{Net Financial Benefit}}{\text{Total Retention Package Cost}} \right) \times 100$$
