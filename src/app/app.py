@@ -218,21 +218,51 @@ def main():
         if bundle is not None:
             meta = bundle.metadata
             test_meta = meta.get("test_metrics", {})
-            champ = meta.get("champion_name") or meta.get("best_model_name", "Auto-Classifier")
+            raw_champ = meta.get("champion_name") or meta.get("best_model_name", "Auto-Classifier")
+
+            # Clean champion model formatting
+            if "Logistic" in raw_champ:
+                champ_display = "Penalized Logistic Reg. (L2)"
+            elif "LightGBM" in raw_champ or "LGBM" in raw_champ:
+                champ_display = "LightGBM Boosted Trees"
+            elif "XGB" in raw_champ:
+                champ_display = "XGBoost Classifier"
+            elif "Random" in raw_champ:
+                champ_display = "Random Forest Ensemble"
+            else:
+                champ_display = raw_champ.replace("_", " ").title()
+
             roc = test_meta.get("roc_auc", 0.832)
             pr = test_meta.get("pr_auc", 0.587)
             brier = test_meta.get("brier_score", 0.097)
             p10 = test_meta.get("precision_at_top10", 0.70) * 100
 
+            # Clean cohort display name
+            cohort_display = bundle.cohort_name
+            if "(" in cohort_display:
+                cohort_main = cohort_display.split("(")[0].strip()
+                cohort_sub = "(" + cohort_display.split("(")[1]
+            else:
+                cohort_main = cohort_display
+                cohort_sub = f"({len(bundle.scored_df):,} Records)"
+
             st.markdown(f"""
-            <div style="font-size: 0.82rem; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.85rem; border-radius: 10px; color: #334155; line-height: 1.5;">
-                <div style="font-weight: 700; color: #0f172a; margin-bottom: 0.3rem;">{bundle.cohort_name[:32]}</div>
-                <div><b>Champion:</b> {champ}</div>
-                <div><b>ROC-AUC:</b> <span style="color:#2563eb; font-weight:700;">{roc:.3f}</span></div>
-                <div><b>PR-AUC:</b> {pr:.3f}</div>
-                <div><b>Brier Score:</b> {brier:.3f} (Calibrated)</div>
-                <div><b>Precision@Top10%:</b> {p10:.1f}%</div>
-                <div><b>Records:</b> {len(bundle.scored_df):,} | <b>Features:</b> {meta.get('n_features', 'N/A')}</div>
+            <div style="font-size: 0.82rem; background: #ffffff; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 0.95rem; border-radius: 10px; color: #334155; line-height: 1.55;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                    <span style="font-weight: 700; color: #0f172a; font-size: 0.88rem;">{cohort_main}</span>
+                </div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.55rem;">{cohort_sub}</div>
+                <div style="padding-top: 0.25rem; border-top: 1px dashed #e2e8f0; margin-bottom: 0.4rem;">
+                    <div><b>Champion:</b> <span style="color: #1e293b; font-weight:600;">{champ_display}</span></div>
+                    <div><b>ROC-AUC:</b> <span style="color: #2563eb; font-weight: 700; font-size: 0.9rem;">{roc:.3f}</span></div>
+                    <div><b>PR-AUC:</b> {pr:.3f}</div>
+                    <div><b>Brier Score:</b> {brier:.3f} <span style="color: #10b981; font-size: 0.72rem; font-weight: 600;">(Calibrated)</span></div>
+                    <div><b>Precision@Top10%:</b> {p10:.1f}%</div>
+                    <div><b>Features:</b> {meta.get('n_features', 'N/A')} attributes</div>
+                </div>
+            </div>
+            <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.35rem; line-height: 1.3;">
+                ⚡ <i>Telemetry dynamically updates when you switch cohorts in the selector above.</i>
             </div>
             """, unsafe_allow_html=True)
         else:
